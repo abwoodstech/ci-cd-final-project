@@ -24,19 +24,8 @@ spec:
       script: |
         #!/usr/bin/env sh
         set -eu
-        echo "Removing all files from ${WORKSPACE_SOURCE_PATH} ..."
-        # Delete any existing contents of the directory if it exists.
-        #
-        # We don't just "rm -rf ${WORKSPACE_SOURCE_PATH}" because ${WORKSPACE_SOURCE_PATH} might be "/"
-        # or the root of a mounted volume.
-        if [ -d "${WORKSPACE_SOURCE_PATH}" ] ; then
-          # Delete non-hidden files and directories
-          rm -rf "${WORKSPACE_SOURCE_PATH:?}"/*
-          # Delete files and directories starting with . but excluding ..
-          rm -rf "${WORKSPACE_SOURCE_PATH}"/.[!.]*
-          # Delete files and directories starting with .. plus any other character
-          rm -rf "${WORKSPACE_SOURCE_PATH}"/..?*
-        fi
+        echo "Cleaning workspace"
+        rm -rf *
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -61,52 +50,4 @@ spec:
         python -m pip install --upgrade pip wheel
         pip install -r requirements.txt
         nosetests $(params.args)
-
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: git-clone
-spec:
-  params:
-    - name: url
-      description: The git repository URL to clone
-      type: string
-  workspaces:
-    - name: source
-  steps:
-    - name: prepare
-      image: alpine/git
-      script: |
-        echo "Preparing workspace"
-      securityContext:
-        capabilities:
-          drop:
-            - ALL
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
-
-    - name: place-scripts
-      image: alpine/git
-      script: |
-        echo "Placing scripts"
-      securityContext:
-        capabilities:
-          drop:
-            - ALL
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
-
-    - name: step-clone
-      image: alpine/git
-      script: |
-        git clone $(params.url) $(workspaces.source.path)
-      securityContext:
-        capabilities:
-          drop:
-            - ALL
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
+        
