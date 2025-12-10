@@ -10,6 +10,13 @@ spec:
   steps:
     - name: remove
       image: alpine:3
+      securityContext:
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
       workingDir: $(workspaces.source.path)
       script: |
         #!/usr/bin/env sh
@@ -38,6 +45,13 @@ spec:
   steps:
     - name: lint
       image: python:3.9-slim
+      securityContext:
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
       workingDir: $(workspaces.source.path)
       script: |
         set -e
